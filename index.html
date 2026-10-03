@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Study AI - Visual Notes & Mind Maps</title>
+    <title>Smart Study AI - Visual Notes & Mind Map Generator</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Mermaid.js for Mind Map -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        
         body {
             font-family: 'Plus Jakarta Sans', 'Padauk', sans-serif;
             background-color: #0f172a;
@@ -40,7 +44,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen flex flex-col justify-between">
 
     <!-- Header / Navbar -->
     <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
@@ -55,15 +59,18 @@
                 </div>
             </div>
             
-            <button id="loginBtn" onclick="handleAuth()" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition duration-200 flex items-center space-x-2">
-                <i class="fa-brands fa-google text-red-400"></i>
-                <span>Sign In with Google</span>
-            </button>
+            <!-- User Status & Login Button -->
+            <div id="userProfile" class="flex items-center space-x-3">
+                <button id="loginBtn" onclick="signInWithGoogle()" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition duration-200 flex items-center space-x-2">
+                    <i class="fa-brands fa-google text-red-400"></i>
+                    <span>Sign In with Google</span>
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-4 mt-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+    <main class="max-w-6xl mx-auto px-4 my-8 grid grid-cols-1 md:grid-cols-12 gap-8 w-full">
         
         <!-- Left Column: Controls & Inputs -->
         <section class="md:col-span-5 space-y-6">
@@ -78,7 +85,7 @@
                         Key ရယူရန် <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                     </a>
                 </div>
-                <input type="password" id="apiKey" placeholder="AI Studio Key ကို ဤနေရာတွင် ထည့်ပါ..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition">
+                <input type="password" id="apiKey" placeholder="AI Studio Key ကို ဤနေရာတွင် ထည့်ပါ..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 transition text-slate-200">
             </div>
 
             <!-- Content Input Panel -->
@@ -87,7 +94,7 @@
                     <i class="fa-solid fa-pen-nib text-indigo-400"></i> သင်ခန်းစာ ရိုက်ထည့်ရန်
                 </h2>
                 
-                <textarea id="textInput" rows="6" placeholder="မှတ်စု သို့မဟုတ် စာသားများကို ဤနေရာတွင် ရိုက်ထည့်ပါ သို့မဟုတ် ပုံတင်ပါ..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition text-slate-200"></textarea>
+                <textarea id="textInput" rows="5" placeholder="မှတ်စု သို့မဟုတ် စာသားများကို ဤနေရာတွင် ရိုက်ထည့်ပါ သို့မဟုတ် စာအုပ်ပုံ တင်ပါ..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition text-slate-200"></textarea>
 
                 <div class="relative border-2 border-dashed border-slate-700 rounded-xl p-4 text-center hover:border-indigo-500 transition cursor-pointer bg-slate-900/40">
                     <input type="file" id="imageInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleImageSelect(event)">
@@ -109,7 +116,7 @@
         <!-- Right Column: Visual Outputs -->
         <section class="md:col-span-7 space-y-6">
             
-            <!-- Output Header/Tabs -->
+            <!-- Output Header -->
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
                     <i class="fa-solid fa-diagram-project text-purple-400"></i> Visual Notes & Mind Map Result
@@ -147,9 +154,79 @@
         </section>
     </main>
 
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        Smart Study AI App © Powered by Gemini API & Firebase
+    </footer>
+
+    <!-- Firebase SDK Modular / Compatibility Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
     <script>
+        // Initialize Mermaid
         mermaid.initialize({ startOnLoad: false, theme: 'dark' });
 
+        // Dummy Firebase Config (Replace with your actual Firebase Project config if needed)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDemoKeyForAuthenticationStructureOnly",
+            authDomain: "selfstudyai.firebaseapp.com",
+            projectId: "selfstudyai",
+            storageBucket: "selfstudyai.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        // Handle Google Sign-In
+        function signInWithGoogle() {
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    const user = result.user;
+                    updateUIForUser(user);
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/invalid-api-key') {
+                        alert("Firebase Authentication ကို သုံးရန် Firebase Console မှ သင့် project ၏ အမှန်တကယ် Firebase Config အချက်အလက်များ ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။");
+                    } else {
+                        alert("Login Error: " + error.message);
+                    }
+                });
+        }
+
+        // Update UI when User is logged in
+        function updateUIForUser(user) {
+            const userProfileDiv = document.getElementById('userProfile');
+            userProfileDiv.innerHTML = `
+                <div class="flex items-center space-x-3 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                    <img src="${user.photoURL || 'https://via.placeholder.com/40'}" class="w-7 h-7 rounded-full border border-indigo-500" alt="Profile">
+                    <span class="text-xs font-semibold text-slate-200">${user.displayName}</span>
+                    <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-xs ml-2"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            `;
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+
+        // Auth State Observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                updateUIForUser(user);
+            }
+        });
+
+        // Image Handling
         let base64Image = null;
 
         function handleImageSelect(event) {
@@ -167,6 +244,7 @@
             }
         }
 
+        // Generate Notes & Mind Map via Gemini API
         async function generateVisualNotes() {
             const apiKey = document.getElementById('apiKey').value.trim();
             const textInput = document.getElementById('textInput').value.trim();
@@ -189,7 +267,7 @@
             Analyze the provided input and generate a response in clear Burmese.
             Provide two parts in JSON format:
             1. "summary": Concise bullet-point summaries of the core concepts in Burmese.
-            2. "mermaid": Valid Mermaid.js mindmap chart syntax representing the concept tree. Example: 
+            2. "mermaid": Valid Mermaid.js mindmap chart syntax representing the concept tree. Example:
                mindmap
                  root((Topic))
                    Subtopic1
@@ -249,10 +327,6 @@
             } finally {
                 document.getElementById('loadingSpinner').classList.add('hidden');
             }
-        }
-
-        function handleAuth() {
-            alert("Google Authentication ကို အောင်မြင်စွာ ချိတ်ဆက်နိုင်ရန် Firebase Admin Config ချိန်ညှိရန် လိုအပ်ပါသည်။");
         }
     </script>
 </body>
