@@ -9,6 +9,8 @@
     <!-- Mermaid.js for Diagrams -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: false, theme: 'dark' });</script>
+    <!-- PDF.js for Reading PDF Files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -47,12 +49,20 @@
         <!-- Input Section -->
         <section class="glass p-6 rounded-2xl shadow-xl space-y-4">
             <h2 class="text-lg font-semibold text-blue-400 flex items-center gap-2">
-                <i class="fa-solid fa-book-open"></i> သင်ခန်းစာ သို့မဟုတ် PDF စာသားများ ထည့်သွင်းရန်
+                <i class="fa-solid fa-file-pdf"></i> Textbook PDF သို့မဟုတ် သင်ခန်းစာ ထည့်သွင်းရန်
             </h2>
             
+            <!-- PDF Upload Box -->
+            <div class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer bg-slate-900/50 transition" onclick="document.getElementById('pdfInput').click()">
+                <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="handlePdfUpload(event)">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-400 mb-2"></i>
+                <p class="text-sm font-medium text-slate-200">PDF File ရွေးချယ်ရန် ဤနေရာကို နှိပ်ပါ</p>
+                <p id="pdfStatus" class="text-xs text-slate-400 mt-1">သို့မဟုတ် စာသားများကို အောက်ပါ Box ထဲသို့ တိုက်ရိုက် ကူးထည့်နိုင်ပါသည်။</p>
+            </div>
+
             <div>
                 <label class="block text-xs text-slate-400 mb-1">Textbook Content / Lesson Context:</label>
-                <textarea id="lessonContext" rows="5" placeholder="သင်ခန်းစာ စာသားများ သို့မဟုတ် စာအုပ်ပါ အကြောင်းအရာများကို ဤနေရာတွင် ရိုက်ထည့်ပါ သို့မဟုတ် ကူးထည့်ပါ..." 
+                <textarea id="lessonContext" rows="5" placeholder="PDF မှ ဖတ်ယူထားသော စာသားများ ဤနေရာတွင် ပေါ်လာမည် သို့မဟုတ် စာအုပ်ပါ စာသားများကို ကူးထည့်ပါ..." 
                     class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
 
@@ -125,9 +135,38 @@
     </main>
 
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         let currentTextForAudio = "";
         let synth = window.speechSynthesis;
         let utterance = null;
+
+        async function handlePdfUpload(event) {
+            const file = event.target.files[0];
+            if (!file || file.type !== "application/pdf") return alert("ကျေးဇူးပြု၍ PDF ဖိုင်ကိုသာ ရွေးချယ်ပေးပါခင်ဗျာ။");
+
+            const pdfStatus = document.getElementById('pdfStatus');
+            const textArea = document.getElementById('lessonContext');
+            pdfStatus.innerText = `ဖတ်ရှုနေသည်: ${file.name}...`;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let extractedText = "";
+
+                for (let i = 1; i <= Math.min(pdf.numPages, 15); i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(" ");
+                    extractedText += `\n--- Page ${i} ---\n` + pageText;
+                }
+
+                textArea.value = extractedText.trim();
+                pdfStatus.innerText = `✅ ဖိုင်အမည်: ${file.name} (စာမျက်နှာများ ဖတ်ယူပြီးပါပြီ)`;
+            } catch (err) {
+                alert("PDF ဖတ်ယူရာတွင် အမှားဖြစ်ပေါ်ပါသည်: " + err.message);
+                pdfStatus.innerText = "PDF ဖတ်ယူ၍ မရပါ။ စာသားများကို ကူးထည့်ပေးပါ။";
+            }
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -147,7 +186,7 @@
             const section = document.getElementById('targetSection').value.trim();
 
             if (!apiKey) return alert("Gemini API Key ထည့်ပေးပါခင်ဗျာ။");
-            if (!context) return alert("သင်ခန်းစာ စာသားများ ထည့်ပေးပါခင်ဗျာ။");
+            if (!context) return alert("သင်ခန်းစာ စာသား သို့မဟုတ် PDF ထည့်ပေးပါခင်ဗျာ။");
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
